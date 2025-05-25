@@ -24,28 +24,32 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
   const [retenciones, setRetenciones] = useState([]);
 
   // Cálculos
-  const subtotalNeto = detalles.reduce((sum, d) => sum + d.cantidad * d.precio, 0);
+const subtotalNeto = (detalles || []).reduce((sum, d) => sum + d.cantidad * d.precio, 0);
   const montoIVA = subtotalNeto * (ivaAlicuota/100);
   const subtotalOtros = impuestosInternos + noGravado + exento + comision + fletes;
-  const subtotalRetenciones = retenciones.reduce((sum, r) => sum + r.monto, 0);
+const subtotalRetenciones = (retenciones || []).reduce((sum, r) => sum + r.monto, 0);
   const total = subtotalNeto + montoIVA + subtotalOtros - subtotalRetenciones;
 
   // Si estamos editando, cargamos valores iniciales
   useEffect(() => {
-    if (facturaInicial) {
-      setNumero(facturaInicial.numero);
-      setFecha(facturaInicial.fecha);
-      setEntidadId(facturaInicial.tipo);
-      setDetalles(facturaInicial.detalles);
-      setIvaAlicuota(facturaInicial.ivaAlicuota);
-      setImpuestosInternos(facturaInicial.impuestosInternos);
-      setNoGravado(facturaInicial.noGravado);
-      setExento(facturaInicial.exento);
-      setComision(facturaInicial.comision);
-      setFletes(facturaInicial.fletes);
-      setRetenciones(facturaInicial.retenciones);
-    }
-  }, [facturaInicial]);
+  if (facturaInicial) {
+    setNumero(facturaInicial.numero || '');
+    setFecha(facturaInicial.fecha || '');
+
+    // Adaptar cliente/proveedor_id como entidadId
+    setEntidadId(facturaInicial.entidadId || facturaInicial.proveedor_id || facturaInicial.cliente_id || '');
+
+    setDetalles(facturaInicial.detalles || []);
+    setIvaAlicuota(facturaInicial.ivaAlicuota ?? facturaInicial.iva ?? 21);
+    setImpuestosInternos(facturaInicial.impuestosInternos ?? 0);
+    setNoGravado(facturaInicial.noGravado ?? 0);
+    setExento(facturaInicial.exento ?? 0);
+    setComision(facturaInicial.comision ?? 0);
+    setFletes(facturaInicial.fletes ?? 0);
+    setRetenciones(facturaInicial.retenciones || []);
+  }
+}, [facturaInicial]);
+
 
   const agregarDetalle = () => {
     setDetalles([...detalles, { descripcion: descDet, cantidad: cantDet, precio: precioDet }]);
@@ -69,6 +73,25 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
       subtotalNeto, montoIVA, subtotalOtros, subtotalRetenciones, total
     };
     onSubmit(facturaInicial ? payload : { ...payload, id: Date.now() });
+     if (!facturaInicial) {
+    setNumero('');
+    setFecha('');
+    setEntidadId(entidades[0]?.id || '');
+    setDetalles([]);
+    setDescDet('');
+    setCantDet(1);
+    setPrecioDet(0);
+    setIvaAlicuota(21);
+    setImpuestosInternos(0);
+    setNoGravado(0);
+    setExento(0);
+    setComision(0);
+    setFletes(0);
+    setRetenciones([]);
+    setRetTipo('IIBB');
+    setRetProvincia(provincias[0]);
+    setRetMonto(0);
+  }
   };
 
   return (

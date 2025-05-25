@@ -10,6 +10,8 @@ import FacturasCompraPage from './pages/FacturasCompraPage';
 import FacturasVentaPage from './pages/FacturasVentaPage';
 import LoginPage from './pages/LoginPage';
 import PrivateRoute from './components/PrivateRoute';
+import BalanceClientesPage from './pages/BalanceClientesPage';
+import BalanceProveedoresPage from './pages/BalanceProveedoresPage';
 
 export default function App() {
   return (
@@ -20,8 +22,10 @@ export default function App() {
           <main className="bg-white p-6 rounded shadow-md">
             <Routes>
               <Route path="/" element={<LoginPage />} />
+              <Route path="/balance/clientes" element={<PrivateRoute><BalanceClientesPage /> </PrivateRoute>} />
               <Route path="/clientes" element={<PrivateRoute><ClientesPage /> </PrivateRoute>} />
               <Route path="/proveedores" element={<PrivateRoute><ProveedoresPage /></PrivateRoute>} />
+              <Route path="/balance/proveedores" element={<PrivateRoute><BalanceProveedoresPage /></PrivateRoute>} />
               <Route path="/facturas/venta" element={<PrivateRoute><FacturasVentaPage /></PrivateRoute>} />
               <Route path="/facturas/compra" element={<PrivateRoute><FacturasCompraPage /></PrivateRoute>} />
               <Route path="/recibos/cobro" element={<PrivateRoute><RecibosCobroPage /></PrivateRoute>} />

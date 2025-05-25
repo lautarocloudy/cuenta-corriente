@@ -7,7 +7,7 @@ export default function FacturasCompraPage() {
   const [editando, setEditando] = useState(null);
   const token = localStorage.getItem('token');
 
-  // Traer proveedores
+  // 🔄 Cargar proveedores desde backend
   const fetchProveedores = async () => {
     try {
       const res = await fetch('http://localhost:4000/api/proveedores', {
@@ -20,7 +20,7 @@ export default function FacturasCompraPage() {
     }
   };
 
-  // Traer facturas tipo 'compra'
+  // 🔄 Cargar facturas de compra
   const fetchFacturas = async () => {
     try {
       const res = await fetch('http://localhost:4000/api/facturas?tipo=compra', {
@@ -38,7 +38,7 @@ export default function FacturasCompraPage() {
     fetchFacturas();
   }, []);
 
-  // Guardar nueva factura
+  // ➕ Crear nueva factura
   const handleAdd = async (factura) => {
     try {
       const res = await fetch('http://localhost:4000/api/facturas', {
@@ -61,7 +61,7 @@ export default function FacturasCompraPage() {
     }
   };
 
-  // Actualizar factura
+  // ✏️ Actualizar factura existente
   const handleUpdate = async (factura) => {
     try {
       const res = await fetch(`http://localhost:4000/api/facturas/${factura.id}`, {
@@ -85,7 +85,7 @@ export default function FacturasCompraPage() {
     }
   };
 
-  // Eliminar factura
+  // 🗑️ Eliminar factura
   const handleDelete = async (id) => {
     if (!window.confirm('¿Eliminar factura?')) return;
     try {
@@ -100,15 +100,45 @@ export default function FacturasCompraPage() {
     }
   };
 
+  // 🔍 Editar factura (trae ítems reales y adapta al formulario)
+  const handleEditar = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:4000/api/facturas/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const factura = await res.json();
+
+      // Adaptar datos para el formulario
+      factura.entidadId = factura.proveedor_id || factura.cliente_id;
+
+      // Adaptar ítems: cambiar "precio_unitario" => "precio" y convertir a número
+      factura.detalles = (factura.detalles || []).map((d) => ({
+        descripcion: d.descripcion,
+        cantidad: d.cantidad,
+        precio: Number(d.precio_unitario)
+      }));
+
+      factura.retenciones = factura.retenciones || []; // opcional
+
+      setEditando(factura);
+    } catch (err) {
+      alert('Error al cargar factura: ' + err.message);
+    }
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Facturas de Compra</h1>
+
+      {/* Formulario */}
       <div className="bg-white p-4 rounded shadow mb-6">
         {editando
           ? <FacturaForm key={editando.id} onSubmit={handleUpdate} facturaInicial={editando} onCancel={() => setEditando(null)} entidades={proveedores} />
           : <FacturaForm key="nueva" onSubmit={handleAdd} facturaInicial={null} entidades={proveedores} />
         }
       </div>
+
+      {/* Tabla de facturas */}
       <div className="bg-white p-4 rounded shadow">
         <table className="w-full table-auto">
           <thead className="bg-gray-100">
@@ -128,7 +158,7 @@ export default function FacturasCompraPage() {
                 <td className="p-2">${Number(f.subtotal).toFixed(2)}</td>
                 <td className="p-2 font-bold">${Number(f.total).toFixed(2)}</td>
                 <td className="p-2 flex gap-2">
-                  <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={() => setEditando(f)}>Editar</button>
+                  <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={() => handleEditar(f.id)}>Editar</button>
                   <button className="bg-red-500 text-white px-3 py-1 rounded" onClick={() => handleDelete(f.id)}>Eliminar</button>
                 </td>
               </tr>

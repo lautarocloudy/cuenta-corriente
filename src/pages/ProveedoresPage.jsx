@@ -1,23 +1,67 @@
-// pages/ProveedoresPage.jsx
-import React, { useState } from 'react';
-import ProveedorForm from '../components/ProveedorForm';
+import React, { useEffect, useState } from 'react';
+import ProveedorForm from '../components/ProveedorForm'; // o usá el mismo de ClienteForm con props si es genérico
 
 export default function ProveedoresPage() {
   const [proveedores, setProveedores] = useState([]);
-  const [proveedorEditando, setProveedorEditando] = useState(null);
+  const [editando, setEditando] = useState(null);
+  const token = localStorage.getItem('token');
 
-  const agregarProveedor = (nuevo) => {
-    setProveedores([...proveedores, { ...nuevo, id: Date.now() }]);
+  const fetchProveedores = async () => {
+    try {
+      const res = await fetch('http://localhost:4000/api/proveedores', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setProveedores(data);
+    } catch (err) {
+      console.error('Error al cargar proveedores:', err);
+    }
   };
 
-  const actualizarProveedor = (actualizado) => {
-    setProveedores(proveedores.map(p => p.id === actualizado.id ? actualizado : p));
-    setProveedorEditando(null);
+  useEffect(() => {
+    fetchProveedores();
+  }, []);
+
+  const handleGuardar = async (proveedor) => {
+    try {
+      const metodo = editando ? 'PUT' : 'POST';
+      const url = editando
+        ? `http://localhost:4000/api/proveedores/${proveedor.id}`
+        : 'http://localhost:4000/api/proveedores';
+
+      const res = await fetch(url, {
+        method: metodo,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(proveedor)
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al guardar proveedor');
+
+      fetchProveedores();
+      setEditando(null);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  const eliminarProveedor = (id) => {
-    if (confirm("¿Eliminar este proveedor?")) {
-      setProveedores(proveedores.filter(p => p.id !== id));
+  const handleEliminar = async (id) => {
+    if (!window.confirm('¿Eliminar proveedor?')) return;
+    try {
+      const res = await fetch(`http://localhost:4000/api/proveedores/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al eliminar proveedor');
+
+      fetchProveedores();
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -25,57 +69,39 @@ export default function ProveedoresPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Proveedores</h1>
 
-      <div className="bg-white p-4 rounded shadow mb-6">
-        {proveedorEditando ? (
-          <ProveedorForm
-            key={proveedorEditando.id}
-            onSubmit={actualizarProveedor}
-            proveedorInicial={proveedorEditando}
-            onCancel={() => setProveedorEditando(null)}
-          />
-        ) : (
-          <ProveedorForm
-            key="nuevo"
-            onSubmit={agregarProveedor}
-            proveedorInicial={null}
-          />
-        )}
-      </div>
+      <ProveedorForm
+        onSubmit={handleGuardar}
+        proveedorInicial={editando}
+        onCancel={() => setEditando(null)}
+      />
 
-      <div className="bg-white p-4 rounded shadow">
-        <table className="w-full table-auto">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 text-left">Nombre</th>
-              <th className="p-2 text-left">Domicilio</th>
-              <th className="p-2 text-left">CUIT</th>
-              <th className="p-2 text-left">Email</th>
-              <th className="p-2 text-left">Teléfono</th>
-              <th className="p-2 text-left">Acciones</th>
+      <table className="w-full border mt-4 text-sm">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="p-2">Nombre</th>
+            <th className="p-2">Domicilio</th>
+            <th className="p-2">CUIT</th>
+            <th className="p-2">Email</th>
+            <th className="p-2">Teléfono</th>
+            <th className="p-2">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {proveedores.map((p) => (
+            <tr key={p.id}>
+              <td className="p-2 border">{p.nombre}</td>
+              <td className="p-2 border">{p.domicilio}</td>
+              <td className="p-2 border">{p.cuit}</td>
+              <td className="p-2 border">{p.email}</td>
+              <td className="p-2 border">{p.telefono}</td>
+              <td className="p-2 border flex gap-2">
+                <button onClick={() => setEditando(p)} className="text-blue-600">Editar</button>
+                <button onClick={() => handleEliminar(p.id)} className="text-red-600">Eliminar</button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {proveedores.map(p => (
-              <tr key={p.id} className="border-t">
-                <td className="p-2">{p.nombre}</td>
-                <td className="p-2">{p.domicilio}</td>
-                <td className="p-2">{p.cuit}</td>
-                <td className="p-2">{p.email}</td>
-                <td className="p-2">{p.telefono}</td>
-                <td className="p-2 flex gap-2">
-                  <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={() => setProveedorEditando(p)}>Editar</button>
-                  <button className="bg-red-500 text-white px-3 py-1 rounded" onClick={() => eliminarProveedor(p.id)}>Eliminar</button>
-                </td>
-              </tr>
-            ))}
-            {proveedores.length === 0 && (
-              <tr>
-                <td colSpan="6" className="p-2 text-center text-gray-500">No hay proveedores cargados.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

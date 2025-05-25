@@ -1,8 +1,16 @@
 // components/Navbar.jsx
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    navigate('/');
+  };
   return (
     <nav className="fixed top-0 left-0 w-full h-16 bg-blue-700 text-white shadow-md z-50">
       <div className="max-w-screen-xl mx-auto px-4 h-full flex items-center justify-between">
@@ -15,6 +23,14 @@ export default function Navbar() {
           <li><Link to="/recibos/cobro" className="hover:underline">Cobros</Link></li>
           <li><Link to="/recibos/pago" className="hover:underline">Pagos</Link></li>
           <li><Link to="/balance" className="hover:underline">Balance</Link></li>
+          {usuario && (
+          <>
+            <span className="text-sm">{usuario.nombre}</span>
+            <button onClick={handleLogout} className="ml-2 px-3 py-1 bg-red-600 rounded hover:bg-red-700">
+              Cerrar sesión
+            </button>
+          </>
+        )}
         </ul>
       </div>
     </nav>

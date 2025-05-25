@@ -1,23 +1,71 @@
 // pages/ClientesPage.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ClienteForm from '../components/ClienteForm';
 
 export default function ClientesPage() {
   const [clientes, setClientes] = useState([]);
-  const [clienteEditando, setClienteEditando] = useState(null);
+  const [editando, setEditando] = useState(null);
 
-  const agregarCliente = (nuevo) => {
-    setClientes([...clientes, { ...nuevo, id: Date.now() }]);
+  const token = localStorage.getItem('token'); // o localStorage si usás ese
+
+  // Traer clientes desde la API
+  const fetchClientes = async () => {
+    try {
+      const res = await fetch('http://localhost:4000/api/clientes', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setClientes(data);
+    } catch (err) {
+      console.error('Error al cargar clientes:', err);
+    }
   };
 
-  const actualizarCliente = (clienteActualizado) => {
-    setClientes(clientes.map(c => c.id === clienteActualizado.id ? clienteActualizado : c));
-    setClienteEditando(null);
+  useEffect(() => {
+    fetchClientes();
+  }, []);
+
+  // Crear o actualizar
+  const handleGuardar = async (cliente) => {
+    try {
+      const metodo = editando ? 'PUT' : 'POST';
+      const url = editando
+        ? `http://localhost:4000/api/clientes/${cliente.id}`
+        : 'http://localhost:4000/api/clientes';
+
+      const res = await fetch(url, {
+        method: metodo,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(cliente)
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al guardar cliente');
+
+      fetchClientes();
+      setEditando(null);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  const eliminarCliente = (id) => {
-    if (confirm("¿Estás seguro que querés eliminar este cliente?")) {
-      setClientes(clientes.filter(c => c.id !== id));
+  const handleEliminar = async (id) => {
+    if (!window.confirm('¿Eliminar cliente?')) return;
+    try {
+      const res = await fetch(`http://localhost:4000/api/clientes/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al eliminar cliente');
+
+      fetchClientes();
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -25,67 +73,39 @@ export default function ClientesPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Clientes</h1>
 
-      <div className="bg-white p-4 rounded shadow mb-6">
-  {clienteEditando ? (
-    <ClienteForm
-      key={clienteEditando.id}
-      onSubmit={actualizarCliente}
-      clienteInicial={clienteEditando}
-      onCancel={() => setClienteEditando(null)}
-    />
-  ) : (
-    <ClienteForm
-      key="nuevo"
-      onSubmit={agregarCliente}
-      clienteInicial={null}
-    />
-  )}
-</div>
+      <ClienteForm
+        onSubmit={handleGuardar}
+        clienteInicial={editando}
+        onCancel={() => setEditando(null)}
+      />
 
-      <div className="bg-white p-4 rounded shadow">
-        <table className="w-full table-auto">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 text-left">Nombre</th>
-              <th className="p-2 text-left">Domicilio</th>
-              <th className="p-2 text-left">CUIT</th>
-              <th className="p-2 text-left">Email</th>
-              <th className="p-2 text-left">Teléfono</th>
-              <th className="p-2 text-left">Acciones</th>
+      <table className="w-full border mt-4 text-sm">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="p-2">Nombre</th>
+            <th className="p-2">Domicilio</th>
+            <th className="p-2">CUIT</th>
+            <th className="p-2">Email</th>
+            <th className="p-2">Teléfono</th>
+            <th className="p-2">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {clientes.map((cli) => (
+            <tr key={cli.id}>
+              <td className="p-2 border">{cli.nombre}</td>
+              <td className="p-2 border">{cli.domicilio}</td>
+              <td className="p-2 border">{cli.cuit}</td>
+              <td className="p-2 border">{cli.email}</td>
+              <td className="p-2 border">{cli.telefono}</td>
+              <td className="p-2 border flex gap-2">
+                <button onClick={() => setEditando(cli)} className="text-blue-600">Editar</button>
+                <button onClick={() => handleEliminar(cli.id)} className="text-red-600">Eliminar</button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {clientes.map(cliente => (
-              <tr key={cliente.id} className="border-t">
-                <td className="p-2">{cliente.nombre}</td>
-                <td className="p-2">{cliente.domicilio}</td>
-                <td className="p-2">{cliente.cuit}</td>
-                <td className="p-2">{cliente.email}</td>
-                <td className="p-2">{cliente.telefono}</td>
-                <td className="p-2 flex gap-2">
-                  <button
-                    className="bg-blue-500 text-white px-3 py-1 rounded"
-                    onClick={() => setClienteEditando(cliente)}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    className="bg-red-500 text-white px-3 py-1 rounded"
-                    onClick={() => eliminarCliente(cliente.id)}
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {clientes.length === 0 && (
-              <tr>
-                <td className="p-2 text-center text-gray-500" colSpan="6">No hay clientes cargados.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

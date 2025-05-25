@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entidades }) {
   const [numero, setNumero] = useState('');
   const [fecha, setFecha] = useState('');
-  const [entidadId, setEntidadId] = useState(entidades[0]?.id || '');  
+  const [entidadId, setEntidadId] = useState('');  
   const [detalles, setDetalles] = useState([]);
   const [descDet, setDescDet] = useState('');
   const [cantDet, setCantDet] = useState(1);
@@ -35,7 +35,7 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
     if (facturaInicial) {
       setNumero(facturaInicial.numero);
       setFecha(facturaInicial.fecha);
-      etEntidadId(facturaInicial.entidadId);
+      setEntidadId(facturaInicial.tipo);
       setDetalles(facturaInicial.detalles);
       setIvaAlicuota(facturaInicial.ivaAlicuota);
       setImpuestosInternos(facturaInicial.impuestosInternos);

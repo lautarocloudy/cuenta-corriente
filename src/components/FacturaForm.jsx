@@ -138,11 +138,48 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
       <div className="border p-3">
         <h2 className="font-semibold mb-2">Detalle de Productos</h2>
         <div className="flex gap-2 mb-2">
-          <input placeholder="Descripción" value={descDet} onChange={e => setDescDet(e.target.value)} className="border p-1 flex-1" />
-          <input type="number" min="1" placeholder="Cantidad" value={cantDet} onChange={e => setCantDet(+e.target.value)} className="border p-1 w-24" />
-          <input type="number" min="0" step="0.01" placeholder="Precio" value={precioDet} onChange={e => setPrecioDet(+e.target.value)} className="border p-1 w-24" />
-          <button type="button" onClick={agregarDetalle} className="bg-blue-500 text-white px-3 rounded">Agregar</button>
-        </div>
+           <div className="flex flex-col flex-1">
+      <label className="text-sm text-gray-700 mb-1">Descripción</label>
+      <input
+        placeholder="Descripción"
+        value={descDet}
+        onChange={e => setDescDet(e.target.value)}
+        className="border p-1"
+      />
+    </div>
+    <div className="flex flex-col w-24">
+      <label className="text-sm text-gray-700 mb-1">Cantidad</label>
+      <input
+        type="number"
+        min="1"
+        placeholder="Cantidad"
+        value={cantDet}
+        onChange={e => setCantDet(+e.target.value)}
+        className="border p-1"
+      />
+    </div>
+    <div className="flex flex-col w-24">
+      <label className="text-sm text-gray-700 mb-1">Precio unitario</label>
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Precio"
+        value={precioDet}
+        onChange={e => setPrecioDet(+e.target.value)}
+        className="border p-1"
+      />
+    </div>
+    <div className="flex items-end">
+      <button
+        type="button"
+        onClick={agregarDetalle}
+        className="bg-blue-500 text-white px-3 rounded h-9"
+      >
+        Agregar
+      </button>
+    </div>
+  </div>
         <table className="w-full table-auto mb-2">
           <thead className="bg-gray-100"><tr>
             <th className="p-1">Descripción</th><th className="p-1">Cantidad</th><th className="p-1">Precio</th><th className="p-1">Neto</th>

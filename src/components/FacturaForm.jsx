@@ -96,6 +96,9 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
       setRetMonto(0);
     }
   };
+  const eliminarDetalle = (index) => {
+  setDetalles(detalles.filter((_, i) => i !== index));
+};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -191,6 +194,15 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
                 <td className="p-1">{d.cantidad}</td>
                 <td className="p-1">{d.precio.toFixed(2)}</td>
                 <td className="p-1">{(d.cantidad * d.precio).toFixed(2)}</td>
+                <td className="p-1 text-center">
+        <button
+          type="button"
+          onClick={() => eliminarDetalle(i)}
+          className="text-red-600 hover:underline"
+        >
+          Eliminar
+        </button>
+      </td>
               </tr>
             ))}
           </tbody>
@@ -277,6 +289,7 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
                 <td className="p-1">{r.tipo}</td>
                 <td className="p-1">{r.provincia}</td>
                 <td className="p-1">{r.monto.toFixed(2)}</td>
+                  <th className="p-1">Acciones</th>
               </tr>
             ))}
           </tbody>

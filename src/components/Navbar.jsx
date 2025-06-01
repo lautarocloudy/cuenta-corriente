@@ -50,8 +50,8 @@ export default function Navbar() {
             <button onClick={() => toggleMenu('proveedores')} className="hover:underline">Proveedores</button>
             {menuAbierto === 'proveedores' && (
               <ul className="absolute bg-white text-black mt-2 rounded shadow z-10">
-                <li><Link to="/proveedores" className="block px-4 py-2 hover:bg-gray-200">Proveedores</Link></li>
-                <li><Link to="/balance/proveedores" className="block px-4 py-2 hover:bg-gray-200">Balance</Link></li>
+                <li><Link to="/proveedores" className="block bg-blue-700 px-4 py-2 hover:bg-gray-200">Proveedores</Link></li>
+                <li><Link to="/balance/proveedores" className="block bg-blue-700 px-4 py-2 hover:bg-gray-200">Balance</Link></li>
               </ul>
             )}
           </li>

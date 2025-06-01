@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import FacturaForm from '../components/FacturaForm';
+import Global from '../utils/global';
 
 export default function FacturasVentaPage() {
   const [facturas, setFacturas] = useState([]);
@@ -10,7 +11,7 @@ export default function FacturasVentaPage() {
   // 🔄 Cargar clientes desde backend
   const fetchClientes = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/clientes', {
+      const res = await fetch(Global.url+'clientes', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -23,7 +24,7 @@ export default function FacturasVentaPage() {
   // 🔄 Cargar facturas de venta
   const fetchFacturas = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/facturas?tipo=venta', {
+      const res = await fetch(Global.url+'facturas?tipo=venta', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -41,7 +42,7 @@ export default function FacturasVentaPage() {
   // ➕ Crear nueva factura
   const handleAdd = async (factura) => {
     try {
-      const res = await fetch('http://localhost:4000/api/facturas', {
+      const res = await fetch(Global.url+'facturas', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +65,7 @@ export default function FacturasVentaPage() {
   // ✏️ Actualizar factura existente
   const handleUpdate = async (factura) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/facturas/${factura.id}`, {
+      const res = await fetch(`${Global.url}facturas/${factura.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +90,7 @@ export default function FacturasVentaPage() {
   const handleDelete = async (id) => {
     if (!window.confirm('¿Eliminar factura?')) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/facturas/${id}`, {
+      const res = await fetch(`${Global.url}facturas/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -103,7 +104,7 @@ export default function FacturasVentaPage() {
   // 🔍 Editar factura (trae ítems reales y adapta al formulario)
   const handleEditar = async (id) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/facturas/${id}`, {
+      const res = await fetch(`${Global.url}facturas/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const factura = await res.json();

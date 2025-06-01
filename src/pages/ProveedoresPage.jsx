@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ProveedorForm from '../components/ProveedorForm'; // o usá el mismo de ClienteForm con props si es genérico
+import Global from '../utils/global';
 
 export default function ProveedoresPage() {
   const [proveedores, setProveedores] = useState([]);
@@ -8,7 +9,7 @@ export default function ProveedoresPage() {
 
   const fetchProveedores = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/proveedores', {
+      const res = await fetch(Global.url+'proveedores', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -26,8 +27,8 @@ export default function ProveedoresPage() {
     try {
       const metodo = editando ? 'PUT' : 'POST';
       const url = editando
-        ? `http://localhost:4000/api/proveedores/${proveedor.id}`
-        : 'http://localhost:4000/api/proveedores';
+        ? `${Global.url}proveedores/${proveedor.id}`
+        : Global.url+'proveedores';
 
       const res = await fetch(url, {
         method: metodo,
@@ -51,7 +52,7 @@ export default function ProveedoresPage() {
   const handleEliminar = async (id) => {
     if (!window.confirm('¿Eliminar proveedor?')) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/proveedores/${id}`, {
+      const res = await fetch(`${Global.url}proveedores/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

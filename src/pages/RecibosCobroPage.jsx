@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ReciboForm from '../components/ReciboForm';
+import Global from '../utils/global';
 
 export default function RecibosCobroPage() {
   const [clientes, setClientes] = useState([]);
@@ -15,10 +16,10 @@ export default function RecibosCobroPage() {
       setError(null);
       try {
         const [resClientes, resRecibos] = await Promise.all([
-          fetch('http://localhost:4000/api/clientes', {
+          fetch(Global.url+'clientes', {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch('http://localhost:4000/api/recibos?tipo=cobro', {
+          fetch(Global.url+'recibos?tipo=cobro', {
             headers: { Authorization: `Bearer ${token}` }
           }),
         ]);
@@ -39,7 +40,7 @@ export default function RecibosCobroPage() {
 
   const handleAdd = async (recibo) => {
     try {
-      const res = await fetch('http://localhost:4000/api/recibos', {
+      const res = await fetch(Global.url+'recibos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +67,7 @@ export default function RecibosCobroPage() {
 
   const handleUpdate = async (recibo) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/recibos/${recibo.id}`, {
+      const res = await fetch(`${Global.url}recibos/${recibo.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +96,7 @@ export default function RecibosCobroPage() {
   const handleDelete = async (id) => {
     if (!window.confirm('¿Eliminar este recibo de cobro?')) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/recibos/${id}`, {
+      const res = await fetch(`${Global.url}recibos/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

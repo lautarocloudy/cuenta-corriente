@@ -1,6 +1,7 @@
 // pages/ClientesPage.jsx
 import React, { useEffect, useState } from 'react';
 import ClienteForm from '../components/ClienteForm';
+import Global from '../utils/global';
 
 export default function ClientesPage() {
   const [clientes, setClientes] = useState([]);
@@ -11,7 +12,7 @@ export default function ClientesPage() {
   // Traer clientes desde la API
   const fetchClientes = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/clientes', {
+      const res = await fetch(Global.url + 'clientes', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -30,8 +31,8 @@ export default function ClientesPage() {
     try {
       const metodo = editando ? 'PUT' : 'POST';
       const url = editando
-        ? `http://localhost:4000/api/clientes/${cliente.id}`
-        : 'http://localhost:4000/api/clientes';
+        ? `${Global.url}clientes/${cliente.id}`
+        : Global.url+'/clientes';
 
       const res = await fetch(url, {
         method: metodo,
@@ -55,7 +56,7 @@ export default function ClientesPage() {
   const handleEliminar = async (id) => {
     if (!window.confirm('¿Eliminar cliente?')) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/clientes/${id}`, {
+      const res = await fetch(`${Global.url}clientes/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

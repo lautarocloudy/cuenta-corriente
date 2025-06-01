@@ -31,7 +31,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 w-full h-16 bg-blue-700 text-white shadow-md z-50">
       <div className="max-w-screen-xl mx-auto px-4 h-full flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Cuenta Corriente</h1>
+        <h1 className="text-xl font-semibold">Smart Ceo Gestion</h1>
         <ul ref={menuRef} className="flex gap-6 text-sm font-medium relative">
 
           {/* Menú Clientes */}

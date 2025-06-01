@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro'; // o 'html2canvas-pro'
+import Global from '../utils/global';
 
 export default function BalanceProveedoresPage() {
   const [balances, setBalances] = useState([]);
@@ -8,7 +9,7 @@ export default function BalanceProveedoresPage() {
   const tableRef = useRef();
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/balance/proveedores', {
+    fetch(Global.url + 'balance/proveedores', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

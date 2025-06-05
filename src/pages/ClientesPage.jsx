@@ -32,7 +32,7 @@ export default function ClientesPage() {
       const metodo = editando ? 'PUT' : 'POST';
       const url = editando
         ? `${Global.url}clientes/${cliente.id}`
-        : Global.url+'/clientes';
+        : Global.url+'clientes';
 
       const res = await fetch(url, {
         method: metodo,

@@ -123,7 +123,7 @@ export default function BalanceClientesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Balance de Clientes</h1>
+      <h1 className="text-2xl font-bold mb-4">Cuentas Corrientes de Clientes</h1>
 
       {/* 🔍 Buscador */}
       <div className="mb-4 flex items-center space-x-2">

@@ -129,7 +129,7 @@ export default function BalanceProveedoresPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Balance de Proveedores</h1>
+      <h1 className="text-2xl font-bold mb-4">Cuentas Corrientes de Proveedores</h1>
 
       {/* 🔍 Buscador */}
       <div className="mb-4 flex items-center gap-2">

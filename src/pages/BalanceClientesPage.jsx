@@ -5,17 +5,36 @@ import Global from '../utils/global';
 
 export default function BalanceClientesPage() {
   const [balances, setBalances] = useState([]);
+  const [busqueda, setBusqueda] = useState('');
   const token = localStorage.getItem('token');
   const tableRef = useRef();
 
-  useEffect(() => {
+  const cargarTodos = () => {
     fetch(Global.url + 'balance/clientes', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((data) => setBalances(data))
       .catch((err) => console.error('Error al cargar balance de clientes', err));
+  };
+
+  useEffect(() => {
+    cargarTodos();
   }, []);
+
+  const buscarCliente = () => {
+    if (!busqueda.trim()) {
+      cargarTodos();
+      return;
+    }
+
+    fetch(Global.url + 'balance/clientes/buscar/' + encodeURIComponent(busqueda.trim()), {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => setBalances(data))
+      .catch((err) => console.error('Error buscando cliente', err));
+  };
 
   function applyCompatibleColors(element) {
     if (!element) return;
@@ -44,7 +63,6 @@ export default function BalanceClientesPage() {
     if (!tableElement) return;
 
     const originalStyles = new Map();
-
     saveOriginalStyles(tableElement, originalStyles);
     tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
     applyCompatibleColors(tableElement);
@@ -75,7 +93,6 @@ export default function BalanceClientesPage() {
     if (!tableElement) return;
 
     const originalStyles = new Map();
-
     saveOriginalStyles(tableElement, originalStyles);
     tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
     applyCompatibleColors(tableElement);
@@ -107,6 +124,34 @@ export default function BalanceClientesPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Balance de Clientes</h1>
+
+      {/* 🔍 Buscador */}
+      <div className="mb-4 flex items-center space-x-2">
+        <input
+          type="text"
+          placeholder="Buscar cliente..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-1"
+        />
+        <button
+          onClick={buscarCliente}
+          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+        >
+          Buscar
+        </button>
+        <button
+          onClick={() => {
+            setBusqueda('');
+            cargarTodos();
+          }}
+          className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+        >
+          Limpiar
+        </button>
+      </div>
+
+      {/* 📄 Botones PDF */}
       <div className="mb-4 space-x-2">
         <button
           onClick={downloadPDF}
@@ -122,6 +167,7 @@ export default function BalanceClientesPage() {
         </button>
       </div>
 
+      {/* 📊 Tabla de resultados */}
       <div ref={tableRef} className="overflow-auto">
         <table className="w-full table-auto border border-gray-300">
           <thead className="bg-gray-100">

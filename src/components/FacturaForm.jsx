@@ -115,6 +115,7 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
             <option value="factura">Factura</option>
             <option value="nota de crédito">Nota de Credito</option>
             <option value="nota de débito">Nota de Debito</option>
+            <option value="saldo inicial">Saldo Inicial</option>
           </select>
         </div>
       </div>

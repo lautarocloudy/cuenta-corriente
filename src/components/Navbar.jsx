@@ -40,7 +40,8 @@ export default function Navbar() {
             {menuAbierto === 'clientes' && (
               <ul className="absolute bg-white text-black mt-2 rounded shadow z-10">
                 <li><Link to="/clientes" className="block bg-blue-700 px-4 py-2 hover:bg-gray-200">Crear/ver</Link></li>
-                <li><Link to="/balance/clientes" className="block bg-blue-700 px-4 py-2 hover:bg-gray-200">Cuentas Corrientes</Link></li>
+                {/* <li><Link to="/balance/clientes" className="block bg-blue-700 px-4 py-2 hover:bg-gray-200">Balance</Link></li> */}
+              <li><Link to="/cuenta-corriente/cliente" className="block bg-blue-700 px-4 py-2 hover:bg-gray-200">Cuenta Corriente</Link></li>
               </ul>
             )}
           </li>
@@ -51,7 +52,9 @@ export default function Navbar() {
             {menuAbierto === 'proveedores' && (
               <ul className="absolute bg-white text-black mt-2 rounded shadow z-10">
                 <li><Link to="/proveedores" className="block bg-blue-700 px-4 py-2 hover:bg-gray-200">Crear/ver</Link></li>
-                <li><Link to="/balance/proveedores" className="block bg-blue-700 px-4 py-2 hover:bg-gray-200">Cuentas Corrientes</Link></li>
+                {/* <li><Link to="/balance/proveedores" className="block bg-blue-700 px-4 py-2 hover:bg-gray-200">Cuentas Corrientes</Link></li> */}
+                            <li><Link to="/cuenta-corriente/proveedor" className="block bg-blue-700 px-4 py-2 hover:bg-gray-200">Cuenta Corriente</Link></li>
+
               </ul>
             )}
           </li>

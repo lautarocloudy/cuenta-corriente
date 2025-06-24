@@ -12,6 +12,8 @@ import LoginPage from './pages/LoginPage';
 import PrivateRoute from './components/PrivateRoute';
 import BalanceClientesPage from './pages/BalanceClientesPage';
 import BalanceProveedoresPage from './pages/BalanceProveedoresPage';
+import CuentaCorrienteCliente from './pages/CuentaCorrienteCliente';
+import CuentaCorrienteProveedores from './pages/CuentaCorrienteProveedor';
 
 export default function App() {
   return (
@@ -31,6 +33,8 @@ export default function App() {
               <Route path="/recibos/cobro" element={<PrivateRoute><RecibosCobroPage /></PrivateRoute>} />
               <Route path="/recibos/pago" element={<PrivateRoute><RecibosPagoPage /></PrivateRoute>} />
               <Route path="/balance" element={<PrivateRoute><BalancePage /></PrivateRoute>} />
+              <Route path="/cuenta-corriente/cliente" element={<PrivateRoute><CuentaCorrienteCliente /></PrivateRoute>} />
+              <Route path="/cuenta-corriente/proveedor" element={<PrivateRoute><CuentaCorrienteProveedores /></PrivateRoute>} />
             </Routes>
           </main>
         </div>

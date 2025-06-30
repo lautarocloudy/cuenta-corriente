@@ -3,38 +3,63 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 import Global from '../utils/global';
 
-export default function CuentaCorrienteProveedores() {
+export default function CuentaCorrienteCliente() {
   const [facturas, setFacturas] = useState([]);
-  const [tipo, setTipo] = useState('compra');
+  const [recibos, setRecibos] = useState([]);
+  const [tipo, setTipo] = useState('compra'); // o 'compra'
   const [nombre, setNombre] = useState('');
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
   const token = localStorage.getItem('token');
   const tableRef = useRef();
 
-  const buscarFacturas = () => {
+  const buscarFacturas = async () => {
     const params = new URLSearchParams();
     params.append('tipo', tipo);
     if (nombre.trim()) params.append('nombre', nombre.trim());
     if (desde) params.append('desde', desde);
     if (hasta) params.append('hasta', hasta);
 
-    fetch(Global.url + 'facturas/buscar?' + params.toString(), {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-  console.log('Respuesta:', data);
-  setFacturas(Array.isArray(data) ? data : []);
-})
-      .catch((err) => console.error('Error buscando facturas', err));
+    try {
+      const res = await fetch(Global.url + 'facturas/buscar?' + params.toString(), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setFacturas(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error buscando facturas', err);
+    }
+  };
+
+  const buscarRecibos = async () => {
+    const params = new URLSearchParams();
+    const tipoRecibo = tipo === 'venta' ? 'cobro' : 'pago';
+    params.append('tipo', tipoRecibo);
+    if (nombre.trim()) params.append('nombre', nombre.trim());
+    if (desde) params.append('desde', desde);
+    if (hasta) params.append('hasta', hasta);
+
+    try {
+      const res = await fetch(Global.url + 'recibos/buscar?' + params.toString(), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setRecibos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error buscando recibos', err);
+    }
+  };
+
+  const buscarTodo = () => {
+    buscarFacturas();
+    buscarRecibos();
   };
 
   const limpiar = () => {
     setNombre('');
     setDesde('');
     setHasta('');
-    buscarFacturas();
+    buscarTodo();
   };
 
   const applyCompatibleColors = (element) => {
@@ -60,7 +85,6 @@ export default function CuentaCorrienteProveedores() {
   const downloadPDF = async () => {
     const tableElement = tableRef.current;
     if (!tableElement) return;
-
     const originalStyles = new Map();
     saveOriginalStyles(tableElement, originalStyles);
     tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
@@ -74,7 +98,7 @@ export default function CuentaCorrienteProveedores() {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('facturas.pdf');
+      pdf.save('cuenta_corriente.pdf');
     } catch (error) {
       console.error('Error generando PDF', error);
     } finally {
@@ -89,7 +113,6 @@ export default function CuentaCorrienteProveedores() {
   const printPDF = async () => {
     const tableElement = tableRef.current;
     if (!tableElement) return;
-
     const originalStyles = new Map();
     saveOriginalStyles(tableElement, originalStyles);
     tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
@@ -118,23 +141,35 @@ export default function CuentaCorrienteProveedores() {
   };
 
   useEffect(() => {
-    buscarFacturas();
+    buscarTodo();
   }, [tipo]);
+
+  const calcularBalance = () => {
+  let total = 0;
+
+  // Sumamos o restamos facturas según el tipo_f
+  facturas.forEach((f) => {
+    const tipoF = (f.tipo_f || '').toLowerCase();
+    if (['factura', 'nota de débito', 'saldo inicial'].includes(tipoF)) {
+      total += f.total;
+    } else if (tipoF === 'nota de crédito') {
+      total -= f.total;
+    }
+  });
+
+  // Restamos los recibos (son cobros o pagos)
+  recibos.forEach((r) => {
+    total -= r.total || 0;
+  });
+
+  return total;
+};
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Cuenta corriente proveedor</h1>
+      <h1 className="text-2xl font-bold mb-4">Cuenta corriente {tipo === 'venta' ? 'Clientes' : 'Proveedores'}</h1>
 
-      {/* Filtros */}
       <div className="mb-4 flex flex-wrap gap-2 items-center">
-        {/* <select
-          value={tipo}
-          onChange={(e) => setTipo(e.target.value)}
-          className="border px-3 py-1 rounded"
-        >
-          <option value="venta">Venta</option>
-          <option value="compra">Compra</option>
-        </select> */}
         <input
           type="text"
           placeholder={`Buscar ${tipo === 'venta' ? 'cliente' : 'proveedor'}...`}
@@ -142,78 +177,89 @@ export default function CuentaCorrienteProveedores() {
           onChange={(e) => setNombre(e.target.value)}
           className="border px-3 py-1 rounded"
         />
-        <input
-          type="date"
-          value={desde}
-          onChange={(e) => setDesde(e.target.value)}
-          className="border px-3 py-1 rounded"
-        />
-        <input
-          type="date"
-          value={hasta}
-          onChange={(e) => setHasta(e.target.value)}
-          className="border px-3 py-1 rounded"
-        />
-        <button
-          onClick={buscarFacturas}
-          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-        >
-          Buscar
-        </button>
-        <button
-          onClick={limpiar}
-          className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
-        >
-          Limpiar
-        </button>
+        <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="border px-3 py-1 rounded" />
+        <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="border px-3 py-1 rounded" />
+        <button onClick={buscarTodo} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Buscar</button>
+        <button onClick={limpiar} className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500">Limpiar</button>
       </div>
 
-      {/* Botones PDF */}
       <div className="mb-4 space-x-2">
-        <button
-          onClick={downloadPDF}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Descargar PDF
-        </button>
-        <button
-          onClick={printPDF}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          Imprimir PDF
-        </button>
+        <button onClick={downloadPDF} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Descargar PDF</button>
+        <button onClick={printPDF} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Imprimir PDF</button>
       </div>
 
-      {/* Tabla de resultados */}
-      <div ref={tableRef} className="overflow-auto">
-        <table className="w-full table-auto border border-gray-300">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 border">Fecha</th>
-              <th className="p-2 border">Nro</th>
-              <th className="p-2 border">Tipo F</th>
-              <th className="p-2 border">{tipo === 'venta' ? 'Cliente' : 'Proveedor'}</th>
-              <th className="p-2 border text-right">Subtotal</th>
-              <th className="p-2 border text-right">IVA</th>
-              <th className="p-2 border text-right">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {facturas.map((f) => (
-              <tr key={f.id}>
-                <td className="p-2 border">{f.fecha}</td>
-                <td className="p-2 border">{f.numero}</td>
-                <td className="p-2 border">{f.tipo_f}</td>
-                <td className="p-2 border">
-                  {tipo === 'venta' ? f.cliente_nombre : f.proveedor_nombre}
-                </td>
-                <td className="p-2 border text-right">${f.subtotal.toFixed(2)}</td>
-                <td className="p-2 border text-right">${f.iva.toFixed(2)}</td>
-                <td className="p-2 border text-right font-bold">${f.total.toFixed(2)}</td>
+      {/* Tablas Facturas + Recibos */}
+      <div ref={tableRef} className="overflow-auto space-y-8">
+
+        {/* FACTURAS */}
+        <div>
+          <h2 className="text-lg font-semibold mb-2">Facturas</h2>
+          <table className="w-full table-auto border border-gray-300">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">Fecha</th>
+                <th className="p-2 border">Nro</th>
+                <th className="p-2 border">Tipo F</th>
+                <th className="p-2 border">{tipo === 'venta' ? 'Cliente' : 'Proveedor'}</th>
+                <th className="p-2 border text-right">Subtotal</th>
+                <th className="p-2 border text-right">IVA</th>
+                <th className="p-2 border text-right">Total</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {facturas.map((f) => (
+                <tr key={f.id}>
+                  <td className="p-2 border">{f.fecha}</td>
+                  <td className="p-2 border">{f.numero}</td>
+                  <td className="p-2 border">{f.tipo_f}</td>
+                  <td className="p-2 border">{tipo === 'venta' ? f.cliente_nombre : f.proveedor_nombre}</td>
+                  <td className="p-2 border text-right">${f.subtotal.toFixed(2)}</td>
+                  <td className="p-2 border text-right">${f.iva.toFixed(2)}</td>
+                  <td className="p-2 border text-right font-bold">${f.total.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* RECIBOS */}
+        <div>
+          <h2 className="text-lg font-semibold mb-2">Recibos</h2>
+          <table className="w-full table-auto border border-gray-300">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">Fecha</th>
+                <th className="p-2 border">Nro</th>
+                <th className="p-2 border">{tipo === 'venta' ? 'Cliente' : 'Proveedor'}</th>
+                <th className="p-2 border text-right">Efectivo</th>
+                <th className="p-2 border text-right">Transferencia</th>
+                <th className="p-2 border text-right">Otros</th>
+                <th className="p-2 border text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recibos.map((r) => (
+                <tr key={r.id}>
+                  <td className="p-2 border">{r.fecha}</td>
+                  <td className="p-2 border">{r.numero}</td>
+                  <td className="p-2 border">{tipo === 'venta' ? r.cliente_nombre : r.proveedor_nombre}</td>
+                  <td className="p-2 border text-right">${r.efectivo?.toFixed(2)}</td>
+                  <td className="p-2 border text-right">${r.transferencia?.toFixed(2)}</td>
+                  <td className="p-2 border text-right">${r.otros?.toFixed(2)}</td>
+                  <td className="p-2 border text-right font-bold">${r.total?.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        
+          <div className="mt-6 text-right text-xl font-bold">
+  Total a cobrar ${calcularBalance().toFixed(2)}
+</div>
+
+         
+
       </div>
     </div>
   );

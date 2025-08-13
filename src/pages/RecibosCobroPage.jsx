@@ -39,33 +39,31 @@ export default function RecibosCobroPage() {
   }, [token]);
 
   const handleAdd = async (recibo) => {
-    try {
-      const res = await fetch(Global.url+'recibos/crear', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...recibo,
-          tipo: 'cobro',
-          // fecha: pasarlo desde el formulario para poder elegir otra fecha
-          fecha: recibo.fecha || new Date().toISOString().split('T')[0],
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setRecibos(prev => [...prev, { ...recibo, id: data.reciboId }]);
-      } else {
-        console.log(res)
-        console.log(data)
-        alert(data.error || 'Error al guardar el recibo');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error al guardar');
+  try {
+    const res = await fetch(Global.url + 'recibos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        ...recibo,
+        tipo: 'cobro',
+        fecha: recibo.fecha || new Date().toISOString().split('T')[0],
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setRecibos(prev => [...prev, { ...recibo, id: data.reciboId }]);
+    } else {
+      alert(data.error || 'Error al guardar el recibo');
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert('Error al guardar');
+  }
+};
+
 
   const handleUpdate = async (recibo) => {
     try {

@@ -41,7 +41,7 @@ export default function RecibosCobroPage() {
   const handleAdd = async (recibo) => {
     try {
       const res = await fetch(Global.url+'recibos', {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`

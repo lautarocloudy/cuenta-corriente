@@ -41,7 +41,7 @@ export default function RecibosCobroPage() {
   const handleAdd = async (recibo) => {
     try {
       const res = await fetch(Global.url+'recibos', {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -57,6 +57,8 @@ export default function RecibosCobroPage() {
       if (res.ok) {
         setRecibos(prev => [...prev, { ...recibo, id: data.reciboId }]);
       } else {
+        console.log(res)
+        console.log(data)
         alert(data.error || 'Error al guardar el recibo');
       }
     } catch (err) {

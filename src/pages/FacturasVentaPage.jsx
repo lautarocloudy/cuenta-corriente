@@ -28,6 +28,7 @@ export default function FacturasVentaPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
+      console.log(data)
       setFacturas(data);
     } catch (err) {
       console.error('Error al cargar facturas:', err);
@@ -143,6 +144,7 @@ export default function FacturasVentaPage() {
           <thead className="bg-gray-100">
             <tr>
               <th className="p-2">Tipo</th>
+              <th className="p-2">Tipo</th>
               <th className="p-2">Número</th>
               <th className="p-2">Fecha</th>
               <th className="p-2">Subtotal</th>
@@ -154,6 +156,7 @@ export default function FacturasVentaPage() {
             {facturas.map(f => (
               <tr key={f.id} className="border-t">
                 <td className="p-2">{f.tipo_f}</td>
+                <td className="p-2">{f.cliente_nombre}</td>
                 <td className="p-2">{f.numero}</td>
                 <td className="p-2">{new Date(f.fecha).toLocaleDateString()}</td>
                 <td className="p-2">${Number(f.subtotal).toFixed(2)}</td>

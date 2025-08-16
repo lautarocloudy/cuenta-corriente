@@ -44,12 +44,30 @@ export default function CuentaCorrienteCliente() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+      console.log(data)
       setRecibos(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Error buscando recibos', err);
     }
   };
+//   const buscarRecibos = async () => {
+//   const params = new URLSearchParams();
+//   const tipoRecibo = tipo === 'venta' ? 'cobro' : 'pago';
+//   params.append('tipo', tipoRecibo);
+//   if (nombre.trim()) params.append('nombre', nombre.trim());
+//   if (desde) params.append('desde', desde);
+//   if (hasta) params.append('hasta', hasta);
 
+//   try {
+//     const res = await fetch(Global.url + 'recibos/buscar?' + params.toString(), {
+//       headers: { Authorization: `Bearer ${token}` },
+//     });
+//     const data = await res.json();
+//     setRecibos(Array.isArray(data) ? data : []);
+//   } catch (err) {
+//     console.error('Error buscando recibos', err);
+//   }
+// };
   const buscarTodo = () => {
     buscarFacturas();
     buscarRecibos();
@@ -139,6 +157,7 @@ export default function CuentaCorrienteCliente() {
       });
     }
   };
+
 
   useEffect(() => {
     buscarTodo();
@@ -242,7 +261,7 @@ export default function CuentaCorrienteCliente() {
                 <tr key={r.id}>
                   <td className="p-2 border">{r.fecha}</td>
                   <td className="p-2 border">{r.numero}</td>
-                  <td className="p-2 border">{tipo === 'venta' ? r.cliente_nombre : r.proveedor_nombre}</td>
+                  <td className="p-2 border">{tipo === 'venta' ? r.cliente.nombre : r.proveedor.nombre}</td>
                   <td className="p-2 border text-right">${r.efectivo?.toFixed(2)}</td>
                   <td className="p-2 border text-right">${r.transferencia?.toFixed(2)}</td>
                   <td className="p-2 border text-right">${r.otros?.toFixed(2)}</td>

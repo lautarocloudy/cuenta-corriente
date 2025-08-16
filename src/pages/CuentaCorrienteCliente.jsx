@@ -101,63 +101,91 @@ export default function CuentaCorrienteCliente() {
   };
 
   const downloadPDF = async () => {
-    const tableElement = tableRef.current;
-    if (!tableElement) return;
-    const originalStyles = new Map();
-    saveOriginalStyles(tableElement, originalStyles);
-    tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
-    applyCompatibleColors(tableElement);
+  const tableElement = tableRef.current;
+  if (!tableElement) return;
+  const originalStyles = new Map();
+  saveOriginalStyles(tableElement, originalStyles);
+  tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
+  applyCompatibleColors(tableElement);
 
-    try {
-      const canvas = await html2canvas(tableElement, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'landscape' });
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('cuenta_corriente.pdf');
-    } catch (error) {
-      console.error('Error generando PDF', error);
-    } finally {
-      originalStyles.forEach((style, el) => {
-        el.style.backgroundColor = style.backgroundColor;
-        el.style.color = style.color;
-        el.style.borderColor = style.borderColor;
-      });
-    }
-  };
+  try {
+    const canvas = await html2canvas(tableElement, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const imgProps = pdf.getImageProperties(imgData);
+
+    // Tamaño de la página A4 en landscape
+    const pdfWidth = pdf.internal.pageSize.getWidth();   // 297 mm
+    const pdfHeight = pdf.internal.pageSize.getHeight(); // 210 mm
+
+    // Escala reducida (80% del ancho)
+    const scale = 0.8;
+    const imgWidth = pdfWidth * scale;
+    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+    // Márgenes calculados para centrar
+    const marginX = (pdfWidth - imgWidth) / 2;
+    const marginY = 5;
+
+    pdf.addImage(imgData, 'PNG', marginX, marginY, imgWidth, imgHeight);
+    pdf.save('cuenta_corriente.pdf');
+  } catch (error) {
+    console.error('Error generando PDF', error);
+  } finally {
+    originalStyles.forEach((style, el) => {
+      el.style.backgroundColor = style.backgroundColor;
+      el.style.color = style.color;
+      el.style.borderColor = style.borderColor;
+    });
+  }
+};
+
 
   const printPDF = async () => {
-    const tableElement = tableRef.current;
-    if (!tableElement) return;
-    const originalStyles = new Map();
-    saveOriginalStyles(tableElement, originalStyles);
-    tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
-    applyCompatibleColors(tableElement);
+  const tableElement = tableRef.current;
+  if (!tableElement) return;
+  const originalStyles = new Map();
+  saveOriginalStyles(tableElement, originalStyles);
+  tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
+  applyCompatibleColors(tableElement);
 
-    try {
-      const canvas = await html2canvas(tableElement, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'landscape' });
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.autoPrint();
-      const pdfBlobUrl = pdf.output('bloburl');
-      window.open(pdfBlobUrl);
-    } catch (error) {
-      console.error('Error generando PDF para imprimir', error);
-    } finally {
-      originalStyles.forEach((style, el) => {
-        el.style.backgroundColor = style.backgroundColor;
-        el.style.color = style.color;
-        el.style.borderColor = style.borderColor;
-      });
-    }
-  };
+  try {
+    const canvas = await html2canvas(tableElement, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
+    const imgProps = pdf.getImageProperties(imgData);
+
+    // Tamaño de hoja A4 apaisado
+    const pdfWidth = pdf.internal.pageSize.getWidth();   // 297 mm
+    const pdfHeight = pdf.internal.pageSize.getHeight(); // 210 mm
+
+    // Escala reducida
+    const scale = 0.8; // podés bajar a 0.7 si querés más margen
+    const imgWidth = pdfWidth * scale;
+    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+    // Márgenes para centrar
+    const marginX = (pdfWidth - imgWidth) / 2;
+    const marginY = 5;
+
+    pdf.addImage(imgData, 'PNG', marginX, marginY, imgWidth, imgHeight);
+
+    // Forzar impresión
+    pdf.autoPrint();
+    const pdfBlobUrl = pdf.output('bloburl');
+    window.open(pdfBlobUrl);
+  } catch (error) {
+    console.error('Error generando PDF para imprimir', error);
+  } finally {
+    originalStyles.forEach((style, el) => {
+      el.style.backgroundColor = style.backgroundColor;
+      el.style.color = style.color;
+      el.style.borderColor = style.borderColor;
+    });
+  }
+};
 
   useEffect(() => {
     buscarTodo();

@@ -55,7 +55,7 @@ nuevosCheques[index][campo] = campo === 'monto' ? parseFloat(valor) || 0 : valor
     setCheque(cheque.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+const handleSubmit = (e) => {
   e.preventDefault();
 
   const entidadIdNum = Number(entidadId);
@@ -66,33 +66,37 @@ nuevosCheques[index][campo] = campo === 'monto' ? parseFloat(valor) || 0 : valor
   if (totalPago <= 0) return alert('El total debe ser mayor a cero.');
 
   const payload = {
-  numero,
-  fecha,
-  tipo: tipoLabel.toLowerCase(),
-  factura_id: null,
-  efectivo: Number(efectivo),
-  transferencia: Number(transferencia),
-  otros: Number(otros),
-  observaciones,
-  cheque,
-};
+    numero,
+    fecha,
+    tipo: tipoLabel.toLowerCase(),
+    factura_id: null,
+    efectivo: Number(efectivo),
+    transferencia: Number(transferencia),
+    otros: Number(otros),
+    observaciones,
+    cheque,
+  };
 
-if (tipoLabel === 'cobro') {
-  payload.cliente_id = entidadIdNum;
-}
-if (tipoLabel === 'pago') {
-  payload.proveedor_id = entidadIdNum;
-}
-  console.log('Payload a enviar:', payload);
+  if (tipoLabel === 'cobro') payload.cliente_id = entidadIdNum;
+  if (tipoLabel === 'pago') payload.proveedor_id = entidadIdNum;
 
   if (reciboInicial && reciboInicial.id) {
     onSubmit({ ...payload, id: reciboInicial.id });
   } else {
     onSubmit(payload);
   }
-  console.log("Payload a enviar:", JSON.stringify(payload, null, 2));
 
+  // Limpiar todos los campos después de guardar
+  setNumero('');
+  setFecha(new Date().toISOString().slice(0,10));
+  setEntidadId('');
+  setEfectivo(0);
+  setTransferencia(0);
+  setOtros(0);
+  setObservaciones('');
+  setCheque([]);
 };
+
 
 
   return (

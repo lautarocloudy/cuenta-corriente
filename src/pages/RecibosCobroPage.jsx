@@ -11,32 +11,26 @@ export default function RecibosCobroPage() {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      setError(null);
-      try {
-        const [resClientes, resRecibos] = await Promise.all([
-          fetch(Global.url+'clientes', {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          fetch(Global.url+'recibos?tipo=cobro', {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-        ]);
-        if (!resClientes.ok) throw new Error('Error al cargar clientes');
-        if (!resRecibos.ok) throw new Error('Error al cargar recibos');
-        const clientesData = await resClientes.json();
-        const recibosData = await resRecibos.json();
-        setClientes(clientesData);
-        setRecibos(recibosData);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+  async function fetchData() {
+    setLoading(true);
+    setError(null);
+    try {
+      const resClientes = await fetch(Global.url+'clientes', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!resClientes.ok) throw new Error('Error al cargar clientes');
+      const clientesData = await resClientes.json();
+      setClientes(clientesData);
+
+      await fetchRecibos(); // Traigo los recibos
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    fetchData();
-  }, [token]);
+  }
+  fetchData();
+}, [token]);
 
   const handleAdd = async (recibo) => {
   try {
@@ -54,13 +48,29 @@ export default function RecibosCobroPage() {
     });
     const data = await res.json();
     if (res.ok) {
-      setRecibos(prev => [...prev, { ...recibo, id: data.reciboId }]);
+      // Vuelvo a traer todos los recibos
+      fetchRecibos();
     } else {
       alert(data.error || 'Error al guardar el recibo');
     }
   } catch (err) {
     console.error(err);
     alert('Error al guardar');
+  }
+};
+
+// Función que trae los recibos
+const fetchRecibos = async () => {
+  try {
+    const res = await fetch(Global.url+'recibos?tipo=cobro', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Error al cargar recibos');
+    const recibosData = await res.json();
+    setRecibos(recibosData);
+  } catch (err) {
+    console.error(err);
+    setError(err.message);
   }
 };
 

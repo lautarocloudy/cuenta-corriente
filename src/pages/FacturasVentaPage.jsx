@@ -144,7 +144,7 @@ export default function FacturasVentaPage() {
           <thead className="bg-gray-100">
             <tr>
               <th className="p-2">Tipo</th>
-              <th className="p-2">Tipo</th>
+              <th className="p-2">Cliente</th>
               <th className="p-2">Número</th>
               <th className="p-2">Fecha</th>
               <th className="p-2">Subtotal</th>

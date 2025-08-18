@@ -50,7 +50,25 @@ export default function ClienteForm({ onSubmit, clienteInicial, onCancel }) {
     <form onSubmit={handleSubmit} className="space-y-2">
       <input name="nombre" value={form.nombre} onChange={handleChange} placeholder="Nombre" className="border p-2 w-full" />
       <input name="domicilio" value={form.domicilio} onChange={handleChange} placeholder="Domicilio" className="border p-2 w-full" />
-      <input name="cuit" value={form.cuit} onChange={handleChange} placeholder="CUIT (XX-XXXXXXXX-X)" className="border p-2 w-full" />
+      <input
+        name="cuit"
+        value={form.cuit}
+        onChange={(e) => {
+          let value = e.target.value.replace(/\D/g, ""); // sacamos todo lo que no es número
+
+          // aplicamos el formato XX-XXXXXXXX-X
+          if (value.length > 2) {
+            value = value.slice(0, 2) + "-" + value.slice(2);
+          }
+          if (value.length > 11) {
+            value = value.slice(0, 11) + "-" + value.slice(11, 12);
+          }
+
+          setForm({ ...form, cuit: value });
+        }}
+        placeholder="CUIT (XX-XXXXXXXX-X)"
+        className="border p-2 w-full"
+      />
       <input name="email" value={form.email} onChange={handleChange} placeholder="Email" className="border p-2 w-full" />
       <input name="telefono" value={form.telefono} onChange={handleChange} placeholder="Teléfono" className="border p-2 w-full" />
       <div className="flex gap-2">

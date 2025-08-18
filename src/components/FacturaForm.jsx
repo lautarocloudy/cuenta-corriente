@@ -18,29 +18,27 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
   const [fletes, setFletes] = useState(0);
 
   const [retTipo, setRetTipo] = useState('IIBB');
-  const provincias = ['Buenos Aires', 'CABA', 'Córdoba', /*...*/];
+  const provincias = ['Buenos Aires', 'CABA', 'Córdoba'];
   const [retProvincia, setRetProvincia] = useState(provincias[0]);
   const [retMonto, setRetMonto] = useState(0);
   const [retenciones, setRetenciones] = useState([]);
+
   const [tipoF, setTipoF] = useState(facturaInicial?.tipo_f || 'factura');
+  const [totalManual, setTotalManual] = useState(facturaInicial?.total || 0);
 
-
-  // Cálculos
+  // Cálculos automáticos
   const subtotalNeto = (detalles || []).reduce((sum, d) => sum + d.cantidad * d.precio, 0);
   const montoIVA = subtotalNeto * (ivaAlicuota / 100);
   const subtotalOtros = impuestosInternos + noGravado + exento + comision + fletes;
   const subtotalRetenciones = (retenciones || []).reduce((sum, r) => sum + r.monto, 0);
   const total = subtotalNeto + montoIVA + subtotalOtros - subtotalRetenciones;
 
-  // Si estamos editando, cargamos valores iniciales
+  // Carga inicial si estamos editando
   useEffect(() => {
     if (facturaInicial) {
       setNumero(facturaInicial.numero || '');
       setFecha(facturaInicial.fecha || '');
-
-      // Adaptar cliente/proveedor_id como entidadId
       setEntidadId(facturaInicial.entidadId || facturaInicial.proveedor_id || facturaInicial.cliente_id || '');
-
       setDetalles(facturaInicial.detalles || []);
       setIvaAlicuota(facturaInicial.ivaAlicuota ?? facturaInicial.iva ?? 21);
       setImpuestosInternos(facturaInicial.impuestosInternos ?? 0);
@@ -49,9 +47,11 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
       setComision(facturaInicial.comision ?? 0);
       setFletes(facturaInicial.fletes ?? 0);
       setRetenciones(facturaInicial.retenciones || []);
+      if (facturaInicial.tipo_f === 'saldo inicial') {
+        setTotalManual(facturaInicial.total || 0);
+      }
     }
   }, [facturaInicial]);
-
 
   const agregarDetalle = () => {
     setDetalles([...detalles, { descripcion: descDet, cantidad: cantDet, precio: precioDet }]);
@@ -65,17 +65,31 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
 
   const handleSubmit = e => {
     e.preventDefault();
-    if (!numero || !fecha) return alert('Número y fecha obligatorios.');
+    if (!fecha || !entidadId) return alert('Fecha y Cliente/Proveedor son obligatorios.');
+
     const payload = {
       id: facturaInicial?.id,
-      numero, fecha, entidadId,
-      detalles, ivaAlicuota,
-      impuestosInternos, noGravado, exento, comision, fletes,
+      numero,
+      fecha,
+      entidadId,
+      detalles,
+      ivaAlicuota,
+      impuestosInternos,
+      noGravado,
+      exento,
+      comision,
+      fletes,
       retenciones,
-      subtotalNeto, montoIVA, subtotalOtros, subtotalRetenciones, total,
+      subtotalNeto,
+      montoIVA,
+      subtotalOtros,
+      subtotalRetenciones,
+      total1: tipoF === 'saldo inicial' ? parseFloat(totalManual || "a") : total,
       tipo_f: tipoF
     };
+
     onSubmit(facturaInicial ? payload : { ...payload, id: Date.now() });
+
     if (!facturaInicial) {
       setNumero('');
       setFecha('');
@@ -94,24 +108,22 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
       setRetTipo('IIBB');
       setRetProvincia(provincias[0]);
       setRetMonto(0);
+      setTotalManual(0);
     }
+    console.log("a: ", facturaInicial)
   };
+
   const eliminarDetalle = (index) => {
     setDetalles(detalles.filter((_, i) => i !== index));
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-
-      {/* Datos principales */}
+      {/* Tipo */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium">Tipo</label>
-          <select
-            value={tipoF}
-            onChange={(e) => setTipoF(e.target.value)}
-            className="border p-1 w-20"
-          >
+          <select value={tipoF} onChange={(e) => setTipoF(e.target.value)} className="border p-1 w-40">
             <option value="factura">Factura</option>
             <option value="nota de crédito">Nota de Credito</option>
             <option value="nota de débito">Nota de Debito</option>
@@ -119,194 +131,181 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
           </select>
         </div>
       </div>
+
+      {/* Datos principales */}
       <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label>Número (XXXXX-XXXXXXXX):</label>
-          <input value={numero} onChange={e => setNumero(e.target.value)} className="border p-1 w-full" />
-        </div>
+        {tipoF !== 'saldo inicial' && (
+          <div>
+            <label>Número (XXXXX-XXXXXXXX):</label>
+            <input value={numero} onChange={e => setNumero(e.target.value)} className="border p-1 w-full" />
+          </div>
+        )}
         <div>
           <label>Fecha:</label>
           <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} className="border p-1 w-full" />
         </div>
         <div>
           <label>Cliente/Proveedor:</label>
-          <select
-            value={entidadId}
-            onChange={e => setEntidadId(+e.target.value)}
-            className="border p-1 w-full"
-          >
+          <select value={entidadId} onChange={e => setEntidadId(+e.target.value)} className="border p-1 w-full">
             <option value="">Seleccione un contacto</option>
-            {entidades.map(e => (
-              <option key={e.id} value={e.id}>{e.nombre}</option>
-            ))}
+            {entidades.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
           </select>
-
         </div>
       </div>
 
-      {/* Detalle de productos */}
-      <div className="border p-3">
-        <h2 className="font-semibold mb-2">Detalle de Productos</h2>
-        <div className="flex gap-2 mb-2">
-          <div className="flex flex-col flex-1">
-            <label className="text-sm text-gray-700 mb-1">Descripción</label>
-            <input
-              placeholder="Descripción"
-              value={descDet}
-              onChange={e => setDescDet(e.target.value)}
-              className="border p-1"
-            />
-          </div>
-          <div className="flex flex-col w-24">
-            <label className="text-sm text-gray-700 mb-1">Cantidad</label>
-            <input
-              type="number"
-              min="1"
-              placeholder="Cantidad"
-              value={cantDet}
-              onChange={e => setCantDet(+e.target.value)}
-              className="border p-1"
-            />
-          </div>
-          <div className="flex flex-col w-24">
-            <label className="text-sm text-gray-700 mb-1">Precio unitario</label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="Precio"
-              value={precioDet}
-              onChange={e => setPrecioDet(+e.target.value)}
-              className="border p-1"
-            />
-          </div>
-          <div className="flex items-end">
-            <button
-              type="button"
-              onClick={agregarDetalle}
-              className="bg-blue-500 text-white px-3 rounded h-9"
-            >
-              Agregar
-            </button>
-          </div>
+      {/* Saldo Inicial */}
+      {tipoF === 'saldo inicial' && (
+        <div className="border p-3">
+          <label className="font-semibold mb-2">Total</label>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={totalManual}
+            onChange={e => setTotalManual(+e.target.value)}
+            className="border p-2 w-full"
+          />
         </div>
-        <table className="w-full table-auto mb-2">
-          <thead className="bg-gray-100"><tr>
-            <th className="p-1">Descripción</th><th className="p-1">Cantidad</th><th className="p-1">Precio</th><th className="p-1">Neto</th>
-          </tr></thead>
-          <tbody>
-            {detalles.map((d, i) => (
-              <tr key={i}>
-                <td className="p-1">{d.descripcion}</td>
-                <td className="p-1">{d.cantidad}</td>
-                <td className="p-1">{d.precio.toFixed(2)}</td>
-                <td className="p-1">{(d.cantidad * d.precio).toFixed(2)}</td>
-                <td className="p-1 text-center">
-                  <button
-                    type="button"
-                    onClick={() => eliminarDetalle(i)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p className="text-right">Subtotal Neto: ${subtotalNeto.toFixed(2)}</p>
-      </div>
+      )}
 
-      {/* IVA */}
-      <div className="border p-3">
-        <h2 className="font-semibold mb-2">Alícuota IVA</h2>
-        <div className="flex items-center gap-4">
-          {[10.5, 21, 27].map(a => (
-            <label key={a}>
-              <input
-                type="radio"
-                checked={ivaAlicuota === a}
-                onChange={() => setIvaAlicuota(a)}
-              /> {a}%
-            </label>
-          ))}
-          <span>Monto IVA: ${montoIVA.toFixed(2)}</span>
-        </div>
-      </div>
-
-      {/* Otros conceptos */}
-      <div className="border p-3">
-        <h2 className="font-semibold mb-2">Otros Conceptos</h2>
-        <div className="grid grid-cols-5 gap-2">
-          <div>
-            <label>Impuestos Internos</label>
-            <input type="number" min="0" step="0.01" value={impuestosInternos} onChange={e => setImpuestosInternos(+e.target.value)} className="border p-1 w-full" />
-          </div>
-          <div>
-            <label>No Gravado</label>
-            <input type="number" min="0" step="0.01" value={noGravado} onChange={e => setNoGravado(+e.target.value)} className="border p-1 w-full" />
-          </div>
-          <div>
-            <label>Exento</label>
-            <input type="number" min="0" step="0.01" value={exento} onChange={e => setExento(+e.target.value)} className="border p-1 w-full" />
-          </div>
-          <div>
-            <label>Comisión</label>
-            <input type="number" min="0" step="0.01" value={comision} onChange={e => setComision(+e.target.value)} className="border p-1 w-full" />
-          </div>
-          <div>
-            <label>Fletes</label>
-            <input type="number" min="0" step="0.01" value={fletes} onChange={e => setFletes(+e.target.value)} className="border p-1 w-full" />
-          </div>
-        </div>
-        <p className="text-right mt-2">Subtotal Otros: ${subtotalOtros.toFixed(2)}</p>
-      </div>
-
-      {/* Retenciones */}
-      <div className="border p-3">
-        <h2 className="font-semibold mb-2">Retenciones / Percepciones</h2>
-        <div className="flex gap-2 mb-2 items-end">
-          <div>
-            <label>Tipo</label>
-            <select value={retTipo} onChange={e => setRetTipo(e.target.value)} className="border p-1">
-              <option>IIBB</option><option>IVA</option><option>Ganancias</option><option>SUSS</option>
-            </select>
-          </div>
-          {retTipo === 'IIBB' && (
-            <div>
-              <label>Provincia</label>
-              <select value={retProvincia} onChange={e => setRetProvincia(e.target.value)} className="border p-1">
-                {provincias.map(p => <option key={p}>{p}</option>)}
-              </select>
+      {/* Detalles y otros se muestran solo si no es saldo inicial */}
+      {tipoF !== 'saldo inicial' && (
+        <>
+          {/* Detalle de productos */}
+          <div className="border p-3">
+            <h2 className="font-semibold mb-2">Detalle de Productos</h2>
+            <div className="flex gap-2 mb-2">
+              <div className="flex flex-col flex-1">
+                <label className="text-sm text-gray-700 mb-1">Descripción</label>
+                <input placeholder="Descripción" value={descDet} onChange={e => setDescDet(e.target.value)} className="border p-1" />
+              </div>
+              <div className="flex flex-col w-24">
+                <label className="text-sm text-gray-700 mb-1">Cantidad</label>
+                <input type="number" min="1" value={cantDet} onChange={e => setCantDet(+e.target.value)} className="border p-1" />
+              </div>
+              <div className="flex flex-col w-24">
+                <label className="text-sm text-gray-700 mb-1">Precio unitario</label>
+                <input type="number" min="0" step="0.01" value={precioDet} onChange={e => setPrecioDet(+e.target.value)} className="border p-1" />
+              </div>
+              <div className="flex items-end">
+                <button type="button" onClick={agregarDetalle} className="bg-blue-500 text-white px-3 rounded h-9">Agregar</button>
+              </div>
             </div>
-          )}
-          <div>
-            <label>Monto</label>
-            <input type="number" min="0" step="0.01" value={retMonto} onChange={e => setRetMonto(+e.target.value)} className="border p-1" />
+            <table className="w-full table-auto mb-2">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-1">Descripción</th><th className="p-1">Cantidad</th><th className="p-1">Precio</th><th className="p-1">Neto</th><th className="p-1">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detalles.map((d, i) => (
+                  <tr key={i}>
+                    <td className="p-1">{d.descripcion}</td>
+                    <td className="p-1">{d.cantidad}</td>
+                    <td className="p-1">{d.precio.toFixed(2)}</td>
+                    <td className="p-1">{(d.cantidad * d.precio).toFixed(2)}</td>
+                    <td className="p-1 text-center">
+                      <button type="button" onClick={() => eliminarDetalle(i)} className="text-red-600 hover:underline">Eliminar</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="text-right">Subtotal Neto: ${subtotalNeto.toFixed(2)}</p>
           </div>
-          <button type="button" onClick={agregarRet} className="bg-blue-500 text-white px-3 rounded">Agregar</button>
-        </div>
-        <table className="w-full table-auto mb-2">
-          <thead className="bg-gray-100"><tr>
-            <th className="p-1">Tipo</th><th className="p-1">Provincia</th><th className="p-1">Monto</th>
-          </tr></thead>
-          <tbody>
-            {retenciones.map((r, i) => (
-              <tr key={i}>
-                <td className="p-1">{r.tipo}</td>
-                <td className="p-1">{r.provincia}</td>
-                <td className="p-1">{r.monto.toFixed(2)}</td>
-                <th className="p-1">Acciones</th>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p className="text-right">Subtotal Retenciones: ${subtotalRetenciones.toFixed(2)}</p>
-      </div>
+
+          {/* IVA */}
+          <div className="border p-3">
+            <h2 className="font-semibold mb-2">Alícuota IVA</h2>
+            <div className="flex items-center gap-4">
+              {[10.5, 21, 27].map(a => (
+                <label key={a}>
+                  <input type="radio" checked={ivaAlicuota === a} onChange={() => setIvaAlicuota(a)} /> {a}%
+                </label>
+              ))}
+              <span>Monto IVA: ${montoIVA.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* Otros conceptos */}
+          <div className="border p-3">
+            <h2 className="font-semibold mb-2">Otros Conceptos</h2>
+            <div className="grid grid-cols-5 gap-2">
+              <div>
+                <label>Impuestos Internos</label>
+                <input type="number" min="0" step="0.01" value={impuestosInternos} onChange={e => setImpuestosInternos(+e.target.value)} className="border p-1 w-full" />
+              </div>
+              <div>
+                <label>No Gravado</label>
+                <input type="number" min="0" step="0.01" value={noGravado} onChange={e => setNoGravado(+e.target.value)} className="border p-1 w-full" />
+              </div>
+              <div>
+                <label>Exento</label>
+                <input type="number" min="0" step="0.01" value={exento} onChange={e => setExento(+e.target.value)} className="border p-1 w-full" />
+              </div>
+              <div>
+                <label>Comisión</label>
+                <input type="number" min="0" step="0.01" value={comision} onChange={e => setComision(+e.target.value)} className="border p-1 w-full" />
+              </div>
+              <div>
+                <label>Fletes</label>
+                <input type="number" min="0" step="0.01" value={fletes} onChange={e => setFletes(+e.target.value)} className="border p-1 w-full" />
+              </div>
+            </div>
+            <p className="text-right mt-2">Subtotal Otros: ${subtotalOtros.toFixed(2)}</p>
+          </div>
+
+          {/* Retenciones */}
+          <div className="border p-3">
+            <h2 className="font-semibold mb-2">Retenciones / Percepciones</h2>
+            <div className="flex gap-2 mb-2 items-end">
+              <div>
+                <label>Tipo</label>
+                <select value={retTipo} onChange={e => setRetTipo(e.target.value)} className="border p-1">
+                  <option>IIBB</option><option>IVA</option><option>Ganancias</option><option>SUSS</option>
+                </select>
+              </div>
+              {retTipo === 'IIBB' && (
+                <div>
+                  <label>Provincia</label>
+                  <select value={retProvincia} onChange={e => setRetProvincia(e.target.value)} className="border p-1">
+                    {provincias.map(p => <option key={p}>{p}</option>)}
+                  </select>
+                </div>
+              )}
+              <div>
+                <label>Monto</label>
+                <input type="number" min="0" step="0.01" value={retMonto} onChange={e => setRetMonto(+e.target.value)} className="border p-1" />
+              </div>
+              <button type="button" onClick={agregarRet} className="bg-blue-500 text-white px-3 rounded">Agregar</button>
+            </div>
+            <table className="w-full table-auto mb-2">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-1">Tipo</th><th className="p-1">Provincia</th><th className="p-1">Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {retenciones.map((r, i) => (
+                  <tr key={i}>
+                    <td className="p-1">{r.tipo}</td>
+                    <td className="p-1">{r.provincia}</td>
+                    <td className="p-1">{r.monto.toFixed(2)}</td>
+                    <th className="p-1">Acciones</th>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="text-right">Subtotal Retenciones: ${subtotalRetenciones.toFixed(2)}</p>
+          </div>
+        </>
+      )}
 
       {/* Total y botones */}
       <div className="text-right space-x-2">
-        <span className="font-bold text-lg">Total: ${total.toFixed(2)}</span>
+        <span className="font-bold text-lg">
+          Total: ${tipoF === 'saldo inicial' ? totalManual.toFixed(2) : total.toFixed(2)}
+        </span>
         <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">
           {facturaInicial ? 'Actualizar' : 'Guardar'}
         </button>

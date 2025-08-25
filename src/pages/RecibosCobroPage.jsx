@@ -77,6 +77,7 @@ const fetchRecibos = async () => {
 
   const handleUpdate = async (recibo) => {
     try {
+      console.log(recibo.cliente_id)
       const res = await fetch(`${Global.url}recibos/${recibo.id}`, {
         method: 'PUT',
         headers: {
@@ -86,7 +87,7 @@ const fetchRecibos = async () => {
         body: JSON.stringify({
           ...recibo,
           tipo: 'cobro',
-          cliente_id: recibo.entidadId,
+          cliente_id: recibo.cliente_id,
           fecha: recibo.fecha || new Date().toISOString().split('T')[0],
         }),
       });
@@ -94,6 +95,7 @@ const fetchRecibos = async () => {
       if (res.ok) {
         setRecibos(prev => prev.map(r => r.id === recibo.id ? recibo : r));
         setEditando(null);
+         await fetchRecibos()
       } else {
         alert(data.error || 'Error al actualizar el recibo');
       }

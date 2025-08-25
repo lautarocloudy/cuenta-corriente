@@ -10,7 +10,7 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
   const [cantDet, setCantDet] = useState(1);
   const [precioDet, setPrecioDet] = useState(0);
 
-  const [ivaAlicuota, setIvaAlicuota] = useState(21);
+  const [ivaAlicuota, setIvaAlicuota] = useState(0);
   const [impuestosInternos, setImpuestosInternos] = useState(0);
   const [noGravado, setNoGravado] = useState(0);
   const [exento, setExento] = useState(0);
@@ -83,7 +83,9 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
       subtotalNeto,
       montoIVA,
       subtotalOtros,
+      subtotalNeto,
       subtotalRetenciones,
+      total_factura: total,
       total1: tipoF === 'saldo inicial' ? parseFloat(totalManual || "a") : total,
       tipo_f: tipoF
     };
@@ -218,7 +220,7 @@ export default function FacturaForm({ onSubmit, facturaInicial, onCancel, entida
           <div className="border p-3">
             <h2 className="font-semibold mb-2">Alícuota IVA</h2>
             <div className="flex items-center gap-4">
-              {[10.5, 21, 27].map(a => (
+              {[0, 10.5, 21, 27].map(a => (
                 <label key={a}>
                   <input type="radio" checked={ivaAlicuota === a} onChange={() => setIvaAlicuota(a)} /> {a}%
                 </label>

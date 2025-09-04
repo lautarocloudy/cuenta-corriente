@@ -104,8 +104,13 @@ export default function CuentaCorrienteCliente() {
 
 const generatePDFa = (accion = "download") => {
   const pdf = new jsPDF();
-  autoTable(pdf, {
-    head: [['Fecha', 'Nro', 'Tipo F', 'Cliente/Proveedor', 'Subtotal', 'IVA', 'Total']],
+
+  // ---- FACTURAS ----
+  pdf.setFontSize(14);
+  pdf.text("Facturas", 14, 15);
+  autoTable(pdf,{
+    startY: 20,
+    head: [['Fecha', 'Nro', 'Tipo F', tipo === 'venta' ? 'Cliente' : 'Proveedor', 'Subtotal', 'IVA', 'Total']],
     body: facturas.map(f => [
       f.fecha,
       f.numero,
@@ -115,10 +120,34 @@ const generatePDFa = (accion = "download") => {
       f.iva.toFixed(2),
       f.total.toFixed(2)
     ]),
-    margin: { top: 20, bottom: 20 },
     styles: { fontSize: 10 },
   });
 
+  // ---- RECIBOS ----
+  let finalY = pdf.lastAutoTable.finalY || 20;
+  pdf.setFontSize(14);
+  pdf.text("Recibos", 14, finalY + 10);
+  autoTable(pdf,{
+    startY: finalY + 15,
+    head: [['Fecha', 'Nro', tipo === 'venta' ? 'Cliente' : 'Proveedor', 'Efectivo', 'Transferencia', 'Otros', 'Total']],
+    body: recibos.map(r => [
+      r.fecha,
+      r.numero,
+      tipo === 'venta' ? r.cliente?.nombre : r.proveedor?.nombre,
+      (r.efectivo || 0).toFixed(2),
+      (r.transferencia || 0).toFixed(2),
+      (r.otros || 0).toFixed(2),
+      (r.total || 0).toFixed(2)
+    ]),
+    styles: { fontSize: 10 },
+  });
+
+  // ---- BALANCE ----
+  finalY = pdf.lastAutoTable.finalY || finalY + 20;
+  pdf.setFontSize(12);
+  pdf.text(`Balance Total: $${calcularBalance().toFixed(2)}`, 14, finalY + 15);
+
+  // ---- ACCIÓN ----
   if (accion === "download") {
     pdf.save("cuenta_corriente.pdf");
   } else if (accion === "print") {
@@ -126,6 +155,8 @@ const generatePDFa = (accion = "download") => {
     window.open(pdf.output("bloburl"), "_blank");
   }
 };
+
+
 
 
 // --------------------------------------------

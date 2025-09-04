@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 import Global from '../utils/global';
+import autoTable from "jspdf-autotable";
 
 export default function CuentaCorrienteCliente() {
   const [facturas, setFacturas] = useState([]);
@@ -100,93 +101,34 @@ export default function CuentaCorrienteCliente() {
     });
   };
 
-  const downloadPDF = async () => {
-  const tableElement = tableRef.current;
-  if (!tableElement) return;
-  const originalStyles = new Map();
-  saveOriginalStyles(tableElement, originalStyles);
-  tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
-  applyCompatibleColors(tableElement);
 
-  try {
-    const canvas = await html2canvas(tableElement, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+const generatePDFa = (accion = "download") => {
+  const pdf = new jsPDF();
+  autoTable(pdf, {
+    head: [['Fecha', 'Nro', 'Tipo F', 'Cliente/Proveedor', 'Subtotal', 'IVA', 'Total']],
+    body: facturas.map(f => [
+      f.fecha,
+      f.numero,
+      f.tipo_f,
+      tipo === 'venta' ? f.cliente_nombre : f.proveedor_nombre,
+      f.subtotal.toFixed(2),
+      f.iva.toFixed(2),
+      f.total.toFixed(2)
+    ]),
+    margin: { top: 20, bottom: 20 },
+    styles: { fontSize: 10 },
+  });
 
-    const imgProps = pdf.getImageProperties(imgData);
-
-    // Tamaño de la página A4 en landscape
-    const pdfWidth = pdf.internal.pageSize.getWidth();   // 297 mm
-    const pdfHeight = pdf.internal.pageSize.getHeight(); // 210 mm
-
-    // Escala reducida (80% del ancho)
-    const scale = 0.8;
-    const imgWidth = pdfWidth * scale;
-    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-
-    // Márgenes calculados para centrar
-    const marginX = (pdfWidth - imgWidth) / 2;
-    const marginY = 5;
-
-    pdf.addImage(imgData, 'PNG', marginX, marginY, imgWidth, imgHeight);
-    pdf.save('cuenta_corriente.pdf');
-  } catch (error) {
-    console.error('Error generando PDF', error);
-  } finally {
-    originalStyles.forEach((style, el) => {
-      el.style.backgroundColor = style.backgroundColor;
-      el.style.color = style.color;
-      el.style.borderColor = style.borderColor;
-    });
-  }
-};
-
-
-  const printPDF = async () => {
-  const tableElement = tableRef.current;
-  if (!tableElement) return;
-  const originalStyles = new Map();
-  saveOriginalStyles(tableElement, originalStyles);
-  tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
-  applyCompatibleColors(tableElement);
-
-  try {
-    const canvas = await html2canvas(tableElement, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-    const imgProps = pdf.getImageProperties(imgData);
-
-    // Tamaño de hoja A4 apaisado
-    const pdfWidth = pdf.internal.pageSize.getWidth();   // 297 mm
-    const pdfHeight = pdf.internal.pageSize.getHeight(); // 210 mm
-
-    // Escala reducida
-    const scale = 0.8; // podés bajar a 0.7 si querés más margen
-    const imgWidth = pdfWidth * scale;
-    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-
-    // Márgenes para centrar
-    const marginX = (pdfWidth - imgWidth) / 2;
-    const marginY = 5;
-
-    pdf.addImage(imgData, 'PNG', marginX, marginY, imgWidth, imgHeight);
-
-    // Forzar impresión
+  if (accion === "download") {
+    pdf.save("cuenta_corriente.pdf");
+  } else if (accion === "print") {
     pdf.autoPrint();
-    const pdfBlobUrl = pdf.output('bloburl');
-    window.open(pdfBlobUrl);
-  } catch (error) {
-    console.error('Error generando PDF para imprimir', error);
-  } finally {
-    originalStyles.forEach((style, el) => {
-      el.style.backgroundColor = style.backgroundColor;
-      el.style.color = style.color;
-      el.style.borderColor = style.borderColor;
-    });
+    window.open(pdf.output("bloburl"), "_blank");
   }
 };
 
+
+// --------------------------------------------
   useEffect(() => {
     buscarTodo();
   }, [tipo]);
@@ -231,8 +173,8 @@ export default function CuentaCorrienteCliente() {
       </div>
 
       <div className="mb-4 space-x-2">
-        <button onClick={downloadPDF} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Descargar PDF</button>
-        <button onClick={printPDF} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Imprimir PDF</button>
+        <button onClick={() => generatePDFa("download")} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Descargar PDF</button>
+        <button onClick={() => generatePDFa("print")} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Imprimir PDF</button>
       </div>
 
       {/* Tablas Facturas + Recibos */}

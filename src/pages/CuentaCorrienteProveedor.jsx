@@ -82,63 +82,32 @@ export default function CuentaCorrienteCliente() {
     });
   };
 
-  const downloadPDF = async () => {
-    const tableElement = tableRef.current;
-    if (!tableElement) return;
-    const originalStyles = new Map();
-    saveOriginalStyles(tableElement, originalStyles);
-    tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
-    applyCompatibleColors(tableElement);
-
-    try {
-      const canvas = await html2canvas(tableElement, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'landscape' });
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('cuenta_corriente.pdf');
-    } catch (error) {
-      console.error('Error generando PDF', error);
-    } finally {
-      originalStyles.forEach((style, el) => {
-        el.style.backgroundColor = style.backgroundColor;
-        el.style.color = style.color;
-        el.style.borderColor = style.borderColor;
-      });
-    }
-  };
-
-  const printPDF = async () => {
-    const tableElement = tableRef.current;
-    if (!tableElement) return;
-    const originalStyles = new Map();
-    saveOriginalStyles(tableElement, originalStyles);
-    tableElement.querySelectorAll('*').forEach((el) => saveOriginalStyles(el, originalStyles));
-    applyCompatibleColors(tableElement);
-
-    try {
-      const canvas = await html2canvas(tableElement, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'landscape' });
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+  const generatePDFa = (accion = "download") => {
+    const pdf = new jsPDF();
+    autoTable(pdf, {
+      head: [['Fecha', 'Nro', 'Tipo F', 'Cliente/Proveedor', 'Subtotal', 'IVA', 'Total']],
+      body: facturas.map(f => [
+        f.fecha,
+        f.numero,
+        f.tipo_f,
+        tipo === 'venta' ? f.cliente_nombre : f.proveedor_nombre,
+        f.subtotal.toFixed(2),
+        f.iva.toFixed(2),
+        f.total.toFixed(2)
+      ]),
+      margin: { top: 20, bottom: 20 },
+      styles: { fontSize: 10 },
+    });
+  
+    if (accion === "download") {
+      pdf.save("cuenta_corriente.pdf");
+    } else if (accion === "print") {
       pdf.autoPrint();
-      const pdfBlobUrl = pdf.output('bloburl');
-      window.open(pdfBlobUrl);
-    } catch (error) {
-      console.error('Error generando PDF para imprimir', error);
-    } finally {
-      originalStyles.forEach((style, el) => {
-        el.style.backgroundColor = style.backgroundColor;
-        el.style.color = style.color;
-        el.style.borderColor = style.borderColor;
-      });
+      window.open(pdf.output("bloburl"), "_blank");
     }
   };
+  
+  
 
   useEffect(() => {
     buscarTodo();
@@ -184,9 +153,9 @@ export default function CuentaCorrienteCliente() {
       </div>
 
       <div className="mb-4 space-x-2">
-        <button onClick={downloadPDF} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Descargar PDF</button>
-        <button onClick={printPDF} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Imprimir PDF</button>
-      </div>
+        <button onClick={() => generatePDFa("download")} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Descargar PDF</button>
+        <button onClick={() => generatePDFa("print")} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Imprimir PDF</button>
+     </div>
 
       {/* Tablas Facturas + Recibos */}
       <div ref={tableRef} className="overflow-auto space-y-8">

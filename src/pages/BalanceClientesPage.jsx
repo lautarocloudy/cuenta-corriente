@@ -34,6 +34,7 @@ export default function BalanceClientesPage() {
       .then((data) => setBalances(data))
       .catch((err) => console.error('Error buscando cliente', err));
   };
+  const totalSaldo = balances.reduce((acc, c) => acc + c.saldo, 0);
 
   // 📄 Función general para exportar (download/print)
   const generarPDF = (accion = "download") => {
@@ -51,6 +52,8 @@ export default function BalanceClientesPage() {
         `$${c.total_cobrado.toFixed(2)}`,
         `$${c.saldo.toFixed(2)}`
       ]),
+      // Fila de total
+        ['Total', '', '', `$${totalSaldo.toFixed(2)}`]
       styles: { fontSize: 10 },
     });
 
@@ -128,6 +131,11 @@ export default function BalanceClientesPage() {
                 <td className="p-2 border font-bold">${c.saldo.toFixed(2)}</td>
               </tr>
             ))}
+            {/* Fila de Total */}
+            <tr className="bg-gray-200 font-bold">
+              <td className="p-2 border text-right" colSpan={3}>Total:</td>
+              <td className="p-2 border">${totalSaldo.toFixed(2)}</td>
+            </tr>
           </tbody>
         </table>
       </div>

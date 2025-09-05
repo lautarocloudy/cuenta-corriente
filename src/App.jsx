@@ -32,7 +32,7 @@ export default function App() {
               <Route path="/facturas/compra" element={<PrivateRoute><FacturasCompraPage /></PrivateRoute>} />
               <Route path="/recibos/cobro" element={<PrivateRoute><RecibosCobroPage /></PrivateRoute>} />
               <Route path="/recibos/pago" element={<PrivateRoute><RecibosPagoPage /></PrivateRoute>} />
-              <Route path="/balance" element={<PrivateRoute><BalancePage /></PrivateRoute>} />
+              <Route path="/balance/clientes" element={<PrivateRoute><BalanceClientesPage /></PrivateRoute>} />
               <Route path="/cuenta-corriente/cliente" element={<PrivateRoute><CuentaCorrienteCliente /></PrivateRoute>} />
               <Route path="/cuenta-corriente/proveedor" element={<PrivateRoute><CuentaCorrienteProveedores /></PrivateRoute>} />
             </Routes>

@@ -43,17 +43,19 @@ export default function BalanceClientesPage() {
     pdf.setFontSize(16);
     pdf.text("Resumen Total", 14, 15);
 
-    autoTable(pdf, {
+     autoTable(pdf, {
       startY: 25,
       head: [['Cliente', 'Facturado', 'Cobrado', 'Saldo']],
-      body: balances.map(c => [
-        c.nombre,
-        `$${c.total_facturado.toFixed(2)}`,
-        `$${c.total_cobrado.toFixed(2)}`,
-        `$${c.saldo.toFixed(2)}`
-      ]),
-      // Fila de total
+      body: [
+        ...balances.map(c => [
+          c.nombre,
+          `$${c.total_facturado.toFixed(2)}`,
+          `$${c.total_cobrado.toFixed(2)}`,
+          `$${c.saldo.toFixed(2)}`
+        ]),
+        // Fila de total
         ['Total', '', '', `$${totalSaldo.toFixed(2)}`]
+      ],
       styles: { fontSize: 10 },
     });
 

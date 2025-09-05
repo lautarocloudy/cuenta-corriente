@@ -40,7 +40,7 @@ export default function BalanceClientesPage() {
     const pdf = new jsPDF({ orientation: 'landscape' });
 
     pdf.setFontSize(16);
-    pdf.text("Balance de Clientes", 14, 15);
+    pdf.text("Resumen Total", 14, 15);
 
     autoTable(pdf, {
       startY: 25,
@@ -64,10 +64,10 @@ export default function BalanceClientesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Cuentas Corrientes de Clientes</h1>
+      <h1 className="text-2xl font-bold mb-4">Resumen Total</h1>
 
       {/* 🔍 Buscador */}
-      <div className="mb-4 flex items-center space-x-2">
+      {/* <div className="mb-4 flex items-center space-x-2">
         <input
           type="text"
           placeholder="Buscar cliente..."
@@ -90,7 +90,7 @@ export default function BalanceClientesPage() {
         >
           Limpiar
         </button>
-      </div>
+      </div> */}
 
       {/* 📄 Botones PDF */}
       <div className="mb-4 space-x-2">
